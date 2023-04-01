@@ -1,0 +1,64 @@
+/*
+****************************************************************
+					Load-Balancing-Hash
+
+****************************************************************
+*/
+
+
+/*
+{
+	"input" : {
+		"line_address": "32bit virtual address generated from processor",
+		"number_of_clusters": "cache_size/cluster_size"
+	},
+	"output": "LCID"
+}
+*/
+
+// Load-Balancing Hash function returns LCID as bit string
+String LBH(input) {
+	num_of_clusters = get_total_numbers_of_clusters(number_of_clusters_table)
+	n = 9					// here n means log of numOfClusters
+	x = Line_addr[29:5]		// default B_bit = 24
+	LCID = null
+
+	if( int(x[n-1:0] < numOfClusters) {
+		LCID = x[n-1:0]
+	}
+	else {
+		// parallelly process x in the 5 randomized hash function with different RandomBinaryMatrix generated from the same uniform distribution
+
+		if(h(x)<numOfClusters) LCID = h(x);
+
+		// IF ALL hash function generate values greater than numOfClusters then go to invertedMapping
+		flag = true;
+	}
+
+	if(flag) {
+		x[n-1:0] = invert(x[n-1:0])
+		LCID = x[n-1:0]
+	}
+}
+
+string h(x) {
+	rbm = generate_random_binary_matrix();		// 24*9 dimensional matrix with random binary values
+	hash_values = []
+	hash_value = ""
+	for(int i=0; i<9; i++) {
+		hash_values[i] = rbm[i] AND x;
+		hash_value += perform_xor(hash_values)		// perform xor operation over all the hash values, will return 1 bit output
+	}
+	
+	return hash_value;							// 9 bit LCID
+}
+
+
+/*
+****************************************************************
+					Cluster-Indirection-Module
+
+****************************************************************
+*/
+
+
