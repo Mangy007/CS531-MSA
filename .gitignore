@@ -1,5 +1,6 @@
 ChampSim/bin/*
 ChampSim/results_1M/*
+.vscode/*
 
 ChampSim/dpc3_traces/600.perlbench_s-210B.champsimtrace.xz
 ChampSim/dpc3_traces/625.x264_s-18B.champsimtrace.xz

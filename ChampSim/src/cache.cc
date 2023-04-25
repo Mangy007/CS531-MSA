@@ -1125,49 +1125,151 @@ void CACHE::operate()
 //     return ;
 // }
 
-// uint32_t load_balancing_hash()
-// {
-//     return ;
-// }
 
-// uint32_t generate_random_binary_matrix(uint32_t rows, uint32_t cols)
-// {
-//   uint32_t mat[rows][cols];
-//     for(int i=0;i<rows;i++) {
-//         for(int j=0;j<cols;j++) {
-//             mat[i][j] = rand()%2;
-//         }
-//     }
-//   return mat;
-// }
+vector<uint32_t> generate_random_binary_matrix(uint32_t rows, uint32_t cols)
+{
+  vector<uint32_t> rbm;
+  srand(time(0));
+    for(int i=0;i<rows;i++)
+    {
+        uint32_t row = 0;
+        uint32_t base = 1;
+        for(int j=0;j<cols;j++)
+        {
+            row += ((rand()%2) * base);
+            base *= 2;
+        }
+        rbm.push_back(row);
+    }
+  return rbm;
+}
 
-// uint32_t randomized_hash(uint32_t x)
-// {
-//   uint32_t rbm = generate_random_binary_matrix(9, 24);
-//   return x;
-// }
+vector<uint32_t> create_n_bit_binary(uint64_t x, uint32_t n)
+{
+    vector<uint32_t> x_bit;
+    for (int i = n-1; i >= 0; i--) {
+        int k = x >> i;
+        if (k & 1)  x_bit.push_back(1);
+        else x_bit.push_back(0);
+    }
+    return x_bit;
+}
+
+vector<uint32_t> convert_to_binary(uint64_t address) 
+{
+    vector<uint32_t> binary_address;
+    while (address > 0) 
+    {
+        binary_address.push_back(address % 2);
+        address = address / 2;
+    }
+    reverse(binary_address.begin(), binary_address.end());
+
+    return binary_address;
+}
+
+uint32_t convert_to_decimal_upto_n_bits(vector<uint32_t> x, uint32_t n) 
+{    
+    uint32_t decimal = 0;
+    uint32_t base = 1;
+    uint32_t start = x.size()-1, end = x.size()-n;
+    for ( int i = start; i >=end && i>=0; i-- ) 
+    {
+        decimal = decimal + uint32_t(x[i] * base);
+        base = base * 2;
+    }
+    return decimal;
+}
+
+uint32_t randomized_hash(uint32_t x, uint32_t x_size)
+{
+  vector<uint32_t> rbm = generate_random_binary_matrix(LOG2_NUM_CLUSTERS, x_size);
+  vector<uint32_t> hash_value_bits;
+  for(int i=0; i<rbm.size(); i++)
+  {
+      rbm[i] = rbm[i] & x;
+      vector<uint32_t> x_bit = create_n_bit_binary(rbm[i], x_size);
+      uint32_t n = x_size/2;
+      for(int j=0; j<3; j++)
+      {
+          vector<uint32_t> temp_x_bit;
+          for (int k = 0; k < n; k++)
+          {
+              temp_x_bit.push_back(x_bit[2*k]^x_bit[(2*k)+1]);
+          }
+          n/=2;
+          for (int k = 0; k < temp_x_bit.size(); k++)
+          {
+              x_bit[k] = temp_x_bit[k];
+          }
+      }
+      hash_value_bits.push_back((x_bit[0]^x_bit[1])^x_bit[2]);
+  }
+  uint32_t hash_value = convert_to_decimal_upto_n_bits(hash_value_bits, hash_value_bits.size()-1);
+  return hash_value;
+}
+
+vector<uint32_t> load_balancing_hash(vector<uint32_t> x, uint32_t num_of_clusters, uint32_t n)
+{
+    vector<uint32_t> LCID;
+    if(convert_to_decimal_upto_n_bits(x, n+1) < num_of_clusters)
+    {
+        LCID = vector<uint32_t>(x.end()-n, x.end());
+    }
+    else 
+    {
+        // "for loop" is run for maximum 5 times as in BCE experiment shows 1-3 hashes
+        // are enough for attaining non-conflicting state.
+        // !!!! hashing needs to be performed parallely
+        bool flag = false;
+        for(int i=0; i<5; i++)
+        {
+            // needs to check the hash function sometimes same value gives different hash values
+            uint32_t hash_value = randomized_hash(convert_to_decimal_upto_n_bits(x, x.size()), x.size());
+            if(hash_value < num_of_clusters) 
+            {
+                flag = true;
+                LCID = create_n_bit_binary(hash_value, n);
+                break;
+            }
+        }
+        if(!flag)
+        {
+            // invert
+            for(int i=0; i<x.size(); i++)
+            {
+                if(x[i]==1) x[i]=0;
+                else x[i] = 1;
+            }
+            LCID = vector<uint32_t>(x.end()-n, x.end());
+        }
+    }
+
+    // cout<<"LCID ------------------  "<<LCID.size()<<"--"<<x.size()<<"    ";
+    // for ( int i = 0; i < LCID.size(); i++ ) 
+    // {
+    //     cout<<LCID[i];
+    // }
+    // cout<<"       ";
+    // for ( int i = 0; i < x.size(); i++ ) 
+    // {
+    //     cout<<x[i];
+    // }
+    // cout<<endl;
+    return LCID;
+}
 
 uint32_t CACHE::get_set(uint64_t address, uint32_t cpu)
 {
     uint32_t num_of_clusters = LLC_NUM_CLUSTERS;
     uint32_t n = LOG2_NUM_CLUSTERS;
-    // cout<<"address ---------------: "<<address<<endl;
-    // cout<<"cpu ---------------: "<<cpu<<endl;
-    // uint32_t x = address[29:5];  // ?? this part might throw error
-    // uint32_t LCID;
-
-    // if(uint32_t(x[n-1:0] < numOfClusters))
-    //   LCID = x[n-1:0];
-    // else 
-    // {
-    //   // for(int i=0; i<5; i++)
-    //   // {
-
-    //   // }
-    //   LCID = randomized_hash(x);
-    // }
-
-    // cout<<"LCID ------------------  "<<LCID<<endl;
+    // uint32_t line_address = (uint32_t) (address);
+    vector<uint32_t> line_address = create_n_bit_binary(address, 32);
+    // !!!!!!!!!!!!!!!!!!!        64 bit is converted to 32 bit       !!!!!!!!!!!!!!!!!!!!!!!!!!!
+    vector<uint32_t> x = vector<uint32_t>(line_address.end() - 30, line_address.end() - 6);
+    // LBH
+    vector<uint32_t> LCID = load_balancing_hash(x, num_of_clusters, n);
+    // CIM
 
     return (uint32_t) (address & ((1 << lg2(NUM_SET)) - 1)); 
 }

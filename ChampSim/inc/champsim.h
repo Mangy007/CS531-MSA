@@ -19,6 +19,10 @@
 #include <string>
 #include <iomanip>
 
+// BCE Implementation: Kumar & Harsh
+#include <vector>
+#include <algorithm>
+
 // USEFUL MACROS
 //#define DEBUG_PRINT
 #define SANITY_CHECK

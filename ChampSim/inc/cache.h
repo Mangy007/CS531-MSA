@@ -79,7 +79,7 @@ extern uint32_t PAGE_TABLE_LATENCY, SWAP_LATENCY;
 #define LLC_LATENCY 20  // 4/5 (L1I or L1D) + 10 + 20 = 34/35 cycles
 
 // BCE Implementation: Kumar & Harsh
-#define LLC_CLUSTER_SIZE 8
+#define LLC_CLUSTER_SIZE 4
 #define LLC_NUM_CLUSTERS LLC_SET/LLC_CLUSTER_SIZE
 #define LOG2_NUM_CLUSTERS 9
 
