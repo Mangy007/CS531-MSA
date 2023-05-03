@@ -4,4 +4,7 @@ ChampSim/results_1M/*
 
 ChampSim/dpc3_traces/600.perlbench_s-210B.champsimtrace.xz
 ChampSim/dpc3_traces/625.x264_s-18B.champsimtrace.xz
+ChampSim/dpc3_traces/644.nab_s-5853B.champsimtrace.xz
 ChampSim/dpc3_traces/649.fotonik3d_s-1176B.champsimtrace.xz
+ChampSim/dpc3_traces/654.roms_s-842B.champsimtrace.xz
+ChampSim/dpc3_traces/657.xz_s-3167B.champsimtrace.xz

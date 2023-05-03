@@ -121,6 +121,10 @@ class CACHE : public MEMORY {
              roi_miss[NUM_CPUS][NUM_TYPES];
 
     uint64_t total_miss_latency;
+
+    // BCE Implementation: Harsh & Kumar
+    uint64_t c_loc_table[512];
+    map <uint32_t, uint32_t> dbt; 
     
     // constructor
     CACHE(string v1, uint32_t v2, int v3, uint32_t v4, uint32_t v5, uint32_t v6, uint32_t v7, uint32_t v8) 
@@ -234,6 +238,9 @@ class CACHE : public MEMORY {
              find_victim(uint32_t cpu, uint64_t instr_id, uint32_t set, const BLOCK *current_set, uint64_t ip, uint64_t full_addr, uint32_t type),
              llc_find_victim(uint32_t cpu, uint64_t instr_id, uint32_t set, const BLOCK *current_set, uint64_t ip, uint64_t full_addr, uint32_t type),
              lru_victim(uint32_t cpu, uint64_t instr_id, uint32_t set, const BLOCK *current_set, uint64_t ip, uint64_t full_addr, uint32_t type);
+
+    uint32_t fetch_from_DBT(uint32_t cpu),
+             fetch_from_CIM(uint32_t LCID, uint32_t LCID0);
 
     void bandwidth_calc(uint32_t cpu, CACHE *cache);    //Antra & Nupur
     // int num_of_blocks_to_prefetch();
