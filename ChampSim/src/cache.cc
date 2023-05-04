@@ -1209,7 +1209,17 @@ uint32_t randomized_hash(uint32_t x, uint32_t x_size)
   return hash_value;
 }
 
-uint32_t load_balancing_hash(vector<uint32_t> x, uint32_t num_of_clusters, uint32_t n)
+uint32_t CACHE::fetch_from_DBT(uint32_t cpu)
+{
+  return dbt[cpu];
+}
+
+uint32_t CACHE::fetch_from_CIM(uint32_t LCID, uint32_t LCID0)
+{
+  return c_loc_table[LCID0+LCID];
+}
+
+uint32_t CACHE::load_balancing_hash(vector<uint32_t> x, uint32_t num_of_clusters, uint32_t n)
 {
     vector<uint32_t> LCID;
     if(convert_to_decimal_upto_n_bits(x, n+1) < num_of_clusters)
@@ -1260,21 +1270,20 @@ uint32_t load_balancing_hash(vector<uint32_t> x, uint32_t num_of_clusters, uint3
     return final_LCID;
 }
 
-uint32_t CACHE::fetch_from_DBT(uint32_t cpu)
+uint32_t CACHE::cluster_indirection_module(uint32_t cpu, uint32_t LCID, vector<uint32_t> line_address)
 {
-  return dbt[cpu];
-}
+    uint32_t LCID_0 = fetch_from_DBT(cpu);
+    uint32_t PCID = fetch_from_CIM(LCID, LCID_0);
+    vector<uint32_t> cluster_offset = vector<uint32_t>(line_address.end() - 6, line_address.end());
+    uint32_t cluster_offset_ = convert_to_decimal_upto_n_bits(cluster_offset, cluster_offset.size());
+    uint32_t set_id = PCID+cluster_offset_;
 
-uint32_t CACHE::fetch_from_CIM(uint32_t LCID, uint32_t LCID0)
-{
-  return c_loc_table[LCID0+LCID];
+    return set_id;
 }
-
 uint32_t CACHE::get_set(uint64_t address, uint32_t cpu)
 {
     if(cache_type == IS_LLC)
     {
-        // cout<<"aaya: "<<IS_LLC<<"  SET:  "<<NUM_SET<<"  CLUSTERS:  "<<LLC_NUM_CLUSTERS<<endl;
         uint32_t num_of_clusters = LLC_NUM_CLUSTERS;
         uint32_t n = LOG2_NUM_CLUSTERS;
         // uint32_t line_address = (uint32_t) (address);
@@ -1285,34 +1294,16 @@ uint32_t CACHE::get_set(uint64_t address, uint32_t cpu)
         // LBH
         uint32_t LCID = load_balancing_hash(x, num_of_clusters, n);
         // CIM
+        uint32_t set_id = cluster_indirection_module(cpu, LCID, line_address);
 
-        // uint32_t LCID_ = convert_to_decimal_upto_n_bits(LCID, LCID.size());
-
-        uint32_t LCID_0 = fetch_from_DBT(cpu);
-
-        uint32_t PCID = fetch_from_CIM(LCID, LCID_0);
-
-        vector<uint32_t> cluster_offset = vector<uint32_t>(line_address.end() - 6, line_address.end());
-
-        uint32_t cluster_offset_ = convert_to_decimal_upto_n_bits(cluster_offset, cluster_offset.size());
-
-        uint32_t set_id = PCID+cluster_offset_;
-
-        // for(int i=LCID.size()-1, j=x.size()-1; i>=0; i--, j--)
-        // {
-        //     x[j] = LCID[i];
-        // }
-        int line_addr_size = line_address.size();
-        for(int i=line_addr_size-30, j=0; i>=line_addr_size-6; i++, j++)
-        {
-            line_address[i] = x[j];
-        }
-        // cout<<"set id: "<<set_id<<"  line addr: "<<(convert_to_decimal_upto_n_bits(line_address, line_addr_size) & LCID)<<endl;
-
-        return set_id;//convert_to_decimal_upto_n_bits(line_address, line_addr_size) & LCID;
+        // cout<<"set LLC: "<<set_id<<endl;
+        return set_id;
     }
     else
+    {
+        // cout<<"set: "<<((uint32_t) (address & ((1 << lg2(NUM_SET)) - 1)))<<endl;
         return (uint32_t) (address & ((1 << lg2(NUM_SET)) - 1)); 
+    }
 }
 
 uint32_t CACHE::get_way(uint64_t address, uint32_t set)

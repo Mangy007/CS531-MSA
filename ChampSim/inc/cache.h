@@ -240,7 +240,9 @@ class CACHE : public MEMORY {
              lru_victim(uint32_t cpu, uint64_t instr_id, uint32_t set, const BLOCK *current_set, uint64_t ip, uint64_t full_addr, uint32_t type);
 
     uint32_t fetch_from_DBT(uint32_t cpu),
-             fetch_from_CIM(uint32_t LCID, uint32_t LCID0);
+             fetch_from_CIM(uint32_t LCID, uint32_t LCID0),
+             load_balancing_hash(vector<uint32_t> x, uint32_t num_of_clusters, uint32_t n),
+             cluster_indirection_module(uint32_t cpu, uint32_t LCID, vector<uint32_t> line_address);
 
     void bandwidth_calc(uint32_t cpu, CACHE *cache);    //Antra & Nupur
     // int num_of_blocks_to_prefetch();
