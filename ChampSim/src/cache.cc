@@ -1119,6 +1119,7 @@ void CACHE::operate()
 // }
 
 // BCE Implementation: Kumar & Harsh
+
 // uint32_t get_total_number_of_clusters(uint32_t cpu)
 // {
 
@@ -1280,6 +1281,7 @@ uint32_t CACHE::cluster_indirection_module(uint32_t cpu, uint32_t LCID, vector<u
 
     return set_id;
 }
+
 uint32_t CACHE::get_set(uint64_t address, uint32_t cpu)
 {
     if(cache_type == IS_LLC)

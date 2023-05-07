@@ -1,6 +1,6 @@
 #!/bin/bash
 
-if [ "$#" -lt 5 ] || [ "$#" -gt 6 ]; then
+if [ "$#" -lt 7 ] || [ "$#" -gt 8 ]; then
     echo "Illegal number of parameters"
     echo "Usage: ./run_2core.sh [BINARY] [N_WARM] [N_SIM] [N_MIX] [TRACE0] [TRACE1] [OPTION]"
     exit 1
@@ -12,7 +12,9 @@ N_WARM=${2}
 N_SIM=${3}
 TRACE0=${4}
 TRACE1=${5}
-OPTION=${6}
+TRACE_NAME_0=${6}
+TRACE_NAME_1=${7}
+OPTION=${8}
 
 # Sanity check
 if [ -z $TRACE_DIR ] || [ ! -d "$TRACE_DIR" ] ; then
@@ -49,4 +51,4 @@ fi
 
 
 mkdir -p results_2core_${N_SIM}M
-(./bin/${BINARY} -warmup_instructions ${N_WARM}000000 -simulation_instructions ${N_SIM}000000 ${OPTION} -traces ${TRACE_DIR}/${TRACE0} ${TRACE_DIR}/${TRACE1}) &> results_2core_${N_SIM}M/-${BINARY}${OPTION}.txt
+(./bin/${BINARY} -warmup_instructions ${N_WARM}000000 -simulation_instructions ${N_SIM}000000 ${OPTION} -traces ${TRACE_DIR}/${TRACE0} ${TRACE_DIR}/${TRACE1}) &> results_2core_${N_SIM}M/original_${TRACE_NAME_0}_${TRACE_NAME_1}.txt

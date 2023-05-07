@@ -10,6 +10,14 @@ void CACHE::llc_initialize_replacement()
 uint32_t CACHE::llc_find_victim(uint32_t cpu, uint64_t instr_id, uint32_t set, const BLOCK *current_set, uint64_t ip, uint64_t full_addr, uint32_t type)
 {
     // baseline LRU
+    if(set_access.count(set))
+    {
+        set_access[set] += 1;
+    }
+    else
+    {
+        set_access[set] = 1;
+    }
     return lru_victim(cpu, instr_id, set, current_set, ip, full_addr, type); 
 }
 
@@ -49,5 +57,9 @@ void CACHE::llc_update_replacement_state(uint32_t cpu, uint32_t set, uint32_t wa
 
 void CACHE::llc_replacement_final_stats()
 {
-
+    cout<<"         llc_replacement_final_stats             "<<endl;
+    for(auto mp:set_access)
+    {
+        cout<<mp.first<<","<<mp.second<<endl;
+    }
 }

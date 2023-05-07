@@ -124,7 +124,7 @@ class CACHE : public MEMORY {
 
     // BCE Implementation: Harsh & Kumar
     uint64_t c_loc_table[512];
-    map <uint32_t, uint32_t> dbt; 
+    map <uint32_t, uint32_t> dbt, set_access;
     
     // constructor
     CACHE(string v1, uint32_t v2, int v3, uint32_t v4, uint32_t v5, uint32_t v6, uint32_t v7, uint32_t v8) 
