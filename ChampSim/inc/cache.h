@@ -123,7 +123,7 @@ class CACHE : public MEMORY {
     uint64_t total_miss_latency;
 
     // BCE Implementation: Harsh & Kumar
-    uint64_t c_loc_table[512];
+    vector<uint32_t> c_loc_table;       // initialization done in constructor
     map <uint32_t, uint32_t> dbt, set_access;
     
     // constructor
@@ -156,6 +156,15 @@ class CACHE : public MEMORY {
                 roi_miss[i][j] = 0;
             }
         }
+    
+    // BCE Implementation: Harsh & Kumar
+    for(uint32_t i=0,j=0; i<LLC_NUM_CLUSTERS; i++,j+=LLC_CLUSTER_SIZE) {
+        c_loc_table.push_back(j);
+    }
+
+    for(uint32_t i=0; i<NUM_CPUS; i++) {
+        dbt[i] = (LLC_NUM_CLUSTERS/NUM_CPUS)*i;
+    }
 
 	total_miss_latency = 0;
 

@@ -51,4 +51,4 @@ fi
 
 
 mkdir -p results_2core_${N_SIM}M
-(./bin/${BINARY} -warmup_instructions ${N_WARM}000000 -simulation_instructions ${N_SIM}000000 ${OPTION} -traces ${TRACE_DIR}/${TRACE0} ${TRACE_DIR}/${TRACE1}) &> results_2core_${N_SIM}M/original_${TRACE_NAME_0}_${TRACE_NAME_1}.txt
+(./bin/${BINARY} -warmup_instructions ${N_WARM}000000 -simulation_instructions ${N_SIM}000000 ${OPTION} -traces ${TRACE_DIR}/${TRACE0} ${TRACE_DIR}/${TRACE1}) &> results_2core_${N_SIM}M/BCE_${TRACE_NAME_0}_${TRACE_NAME_1}.txt

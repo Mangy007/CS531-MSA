@@ -69,7 +69,7 @@ void CACHE::handle_fill()
         uint32_t mshr_index = MSHR.next_fill_index;
 
         // find victim
-        uint32_t set = get_set(MSHR.entry[mshr_index].address, cpu), way;
+        uint32_t set = get_set(MSHR.entry[mshr_index].address, fill_cpu), way;
         if (cache_type == IS_LLC) {
             way = llc_find_victim(fill_cpu, MSHR.entry[mshr_index].instr_id, set, block[set], MSHR.entry[mshr_index].ip, MSHR.entry[mshr_index].full_addr, MSHR.entry[mshr_index].type);
         }
@@ -284,9 +284,12 @@ void CACHE::handle_writeback()
     // handle the oldest entry
     if ((WQ.entry[WQ.head].event_cycle <= current_core_cycle[writeback_cpu]) && (WQ.occupancy > 0)) {
         int index = WQ.head;
+        uint32_t write_cpu = WQ.entry[WQ.head].cpu;
+        if (write_cpu == NUM_CPUS)
+            return;
 
         // access cache
-        uint32_t set = get_set(WQ.entry[index].address, cpu);
+        uint32_t set = get_set(WQ.entry[index].address, write_cpu);
         int way = check_hit(&WQ.entry[index]);
         
         if (way >= 0) { // writeback hit (or RFO hit for L1D)
@@ -445,7 +448,7 @@ void CACHE::handle_writeback()
             }
             else {
                 // find victim
-                uint32_t set = get_set(WQ.entry[index].address, cpu), way;
+                uint32_t set = get_set(WQ.entry[index].address, write_cpu), way;
                 if (cache_type == IS_LLC) {
                     way = llc_find_victim(writeback_cpu, WQ.entry[index].instr_id, set, block[set], WQ.entry[index].ip, WQ.entry[index].full_addr, WQ.entry[index].type);
                 }
@@ -586,7 +589,7 @@ void CACHE::handle_read()
             int index = RQ.head;
 
             // access cache
-            uint32_t set = get_set(RQ.entry[index].address, cpu);
+            uint32_t set = get_set(RQ.entry[index].address, read_cpu);
             int way = check_hit(&RQ.entry[index]);
             
             if (way >= 0) { // read hit
@@ -894,7 +897,7 @@ void CACHE::handle_prefetch()
             int index = PQ.head;
 
             // access cache
-            uint32_t set = get_set(PQ.entry[index].address, cpu);
+            uint32_t set = get_set(PQ.entry[index].address, prefetch_cpu);
             int way = check_hit(&PQ.entry[index]);
             
             if (way >= 0) { // prefetch hit
@@ -1256,17 +1259,6 @@ uint32_t CACHE::load_balancing_hash(vector<uint32_t> x, uint32_t num_of_clusters
         }
     }
 
-    // cout<<"LCID ------------------  "<<LCID.size()<<"--"<<x.size()<<"    ";
-    // for ( int i = 0; i < LCID.size(); i++ ) 
-    // {
-    //     cout<<LCID[i];
-    // }
-    // cout<<"       ";
-    // for ( int i = 0; i < x.size(); i++ ) 
-    // {
-    //     cout<<x[i];
-    // }
-    // cout<<endl;
     uint32_t final_LCID = convert_to_decimal_upto_n_bits(LCID, LCID.size());
     return final_LCID;
 }
@@ -1279,6 +1271,9 @@ uint32_t CACHE::cluster_indirection_module(uint32_t cpu, uint32_t LCID, vector<u
     uint32_t cluster_offset_ = convert_to_decimal_upto_n_bits(cluster_offset, cluster_offset.size());
     uint32_t set_id = PCID+cluster_offset_;
 
+    if(set_id >= LLC_SET)
+        set_id = LLC_SET-1;
+
     return set_id;
 }
 
@@ -1288,22 +1283,17 @@ uint32_t CACHE::get_set(uint64_t address, uint32_t cpu)
     {
         uint32_t num_of_clusters = LLC_NUM_CLUSTERS;
         uint32_t n = LOG2_NUM_CLUSTERS;
-        // uint32_t line_address = (uint32_t) (address);
-        uint32_t addr = (uint32_t) (address & ((1 << lg2(num_of_clusters)) - 1));
-        vector<uint32_t> line_address = create_n_bit_binary(addr, 32);
-        // !!!!!!!!!!!!!!!!!!!        64 bit is converted to 32 bit       !!!!!!!!!!!!!!!!!!!!!!!!!!!
+        vector<uint32_t> line_address = create_n_bit_binary(address, 48);
         vector<uint32_t> x = vector<uint32_t>(line_address.end() - 30, line_address.end() - 6);
         // LBH
         uint32_t LCID = load_balancing_hash(x, num_of_clusters, n);
         // CIM
         uint32_t set_id = cluster_indirection_module(cpu, LCID, line_address);
 
-        // cout<<"set LLC: "<<set_id<<endl;
         return set_id;
     }
     else
     {
-        // cout<<"set: "<<((uint32_t) (address & ((1 << lg2(NUM_SET)) - 1)))<<endl;
         return (uint32_t) (address & ((1 << lg2(NUM_SET)) - 1)); 
     }
 }
@@ -1369,7 +1359,8 @@ void CACHE::fill_cache(uint32_t set, uint32_t way, PACKET *packet)
 
 int CACHE::check_hit(PACKET *packet)
 {
-    uint32_t set = get_set(packet->address, cpu);
+    uint32_t hit_cpu = packet->cpu;
+    uint32_t set = get_set(packet->address, hit_cpu);
     int match_way = -1;
 
     if (NUM_SET < set) {
@@ -1400,7 +1391,8 @@ int CACHE::check_hit(PACKET *packet)
 
 int CACHE::invalidate_entry(uint64_t inval_addr)
 {
-    uint32_t set = get_set(inval_addr, cpu);
+    uint32_t fill_cpu = (MSHR.next_fill_index == MSHR_SIZE) ? NUM_CPUS : MSHR.entry[MSHR.next_fill_index].cpu;
+    uint32_t set = get_set(inval_addr, fill_cpu);
     int match_way = -1;
 
     if (NUM_SET < set) {

@@ -1,6 +1,6 @@
 #!/bin/bash
 
-if [ "$#" -lt 8 ] || [ "$#" -gt 9 ]; then
+if [ "$#" -lt 11 ] || [ "$#" -gt 12 ]; then
     echo "Illegal number of parameters"
     echo "Usage: ./run_4core.sh [BINARY] [N_WARM] [N_SIM] [N_MIX] [TRACE0] [TRACE1] [TRACE2] [TRACE3] [OPTION]"
     exit 1
@@ -10,12 +10,15 @@ TRACE_DIR=$PWD/dpc3_traces
 BINARY=${1}
 N_WARM=${2}
 N_SIM=${3}
-N_MIX=${4}
-TRACE0=${5}
-TRACE1=${6}
-TRACE2=${7}
-TRACE3=${8}
-OPTION=${9}
+TRACE0=${4}
+TRACE1=${5}
+TRACE2=${6}
+TRACE3=${7}
+TRACE_NAME_0=${8}
+TRACE_NAME_1=${9}
+TRACE_NAME_2=${10}
+TRACE_NAME_3=${11}
+OPTION=${12}
 
 # Sanity check
 if [ -z $TRACE_DIR ] || [ ! -d "$TRACE_DIR" ] ; then
@@ -61,4 +64,4 @@ if [ ! -f "$TRACE_DIR/$TRACE3" ] ; then
 fi
 
 mkdir -p results_4core_${N_SIM}M
-(./bin/${BINARY} -warmup_instructions ${N_WARM}000000 -simulation_instructions ${N_SIM}000000 ${OPTION} -traces ${TRACE_DIR}/${TRACE0} ${TRACE_DIR}/${TRACE1} ${TRACE_DIR}/${TRACE2} ${TRACE_DIR}/${TRACE3}) &> results_4core_${N_SIM}M/mix${N_MIX}-${BINARY}${OPTION}.txt
+(./bin/${BINARY} -warmup_instructions ${N_WARM}000000 -simulation_instructions ${N_SIM}000000 ${OPTION} -traces ${TRACE_DIR}/${TRACE0} ${TRACE_DIR}/${TRACE1} ${TRACE_DIR}/${TRACE2} ${TRACE_DIR}/${TRACE3}) &> results_4core_${N_SIM}M/baseline_${TRACE_NAME_0}_${TRACE_NAME_1}_${TRACE_NAME_2}_${TRACE_NAME_3}.txt
