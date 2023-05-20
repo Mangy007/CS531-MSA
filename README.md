@@ -1,7 +1,7 @@
-# MSA_sem2
+# CS531-MSA
 
 
-Code implemented over **Bespoke cache enclaves: Fine-grained and scalable isolation from cache side-channels via flexible set-partitioning ** paper. Written By Kumar Mangalam (2022AIM1002) & Harsh Raj (2022CSM1004). 
+Implementation **Bespoke cache enclaves: Fine-grained and scalable isolation from cache side-channels via flexible set-partitioning** paper in ChampSim. Written By Kumar Mangalam (2022AIM1002) & Harsh Raj (2022CSM1004). 
 To run the code:-
 1. `cd ChampSim`
 2. `./term_paper.sh ` (uncomment the script to run according to your requirement)
